@@ -1,0 +1,29 @@
+{{- /*
+# Template to create a release tied service
+# Example microservicesvc-v1.default.svc.cluster.local
+# The service will include all versions of the application 
+# inside the namespace where the app is running.
+#   selector:
+#    app: mymicroservice
+#    release: v1
+#    version: v1
+*/ -}}
+{{- define "common.service.tpl" -}}
+apiVersion: v1
+kind: Service
+{{ template "common.metadata" . }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+  # Note the Istio requirements for port naming, must start from protocol
+  - name: {{ .Values.service.port_name }}
+    port: {{ .Values.service.port }}
+    targetPort: {{ .Values.service.port_name }}
+  selector:
+    app: {{ template "common.name" . }}
+    release: {{ .Release.Name | quote }}
+    version: {{ .Values.version }}
+{{- end -}}
+{{- define "common.service" -}}
+{{- template "common.util.merge" (append . "common.service.tpl") -}}
+{{- end -}}

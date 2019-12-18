@@ -1,0 +1,33 @@
+{{- /*
+# Template to create a Deployment
+# This template heavily uses other templates 
+# defined in same shart
+# It uses the trick of reloading the deployment 
+# in case of change in main workload configuration map
+*/ -}}
+{{- define "common.deployment.tpl" -}}
+{{- $releaseName := include "common.fullname" . -}}
+{{- $name := include "common.name" . -}}
+apiVersion: extensions/v1beta1
+kind: Deployment
+{{ template "common.metadata" . }}
+spec:
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/rewriteAppHTTPProbers: "true"
+      labels:
+        app: {{ template "common.name" . }}
+        release: {{ .Release.Name | quote }}
+        version: {{ .Values.version }}
+    spec:
+{{ if .Values.serviceAccountName | default false }}
+      serviceAccountName: {{ .Values.serviceAccountName | default $name | quote }}
+{{ end }}
+      volumes:
+      - {{ include "common.volume.configMap" (list "config" $releaseName ) }}
+      containers: []
+{{- end -}}
+{{- define "common.deployment" -}}
+{{- template "common.util.merge" (append . "common.deployment.tpl") -}}
+{{- end -}}

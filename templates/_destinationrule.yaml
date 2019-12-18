@@ -1,0 +1,37 @@
+{{- /*
+# Template to create a Template to create Istio Destination Rules
+# the destination rule here is used mostly not for routing
+# to specific service, but to specify load balancing mechanisms
+# and circuit breaking strategy
+*/ -}}
+
+{{- define "common.destinationrule.tpl" -}}
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+{{ template "common.metadata" . }}
+spec:
+  host: {{ template "common.fullname" . }}.{{ .Release.Namespace }}.{{ .Values.destinationrule.domain }}
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+    loadBalancer:
+  subsets:
+  - name: {{ .Values.version }}
+    labels:
+      app: {{ template "common.name" . }}
+      version: {{ .Values.version }}
+    trafficPolicy:
+      tls:
+        mode: ISTIO_MUTUAL
+      loadBalancer:
+        simple: LEAST_CONN
+      connectionPool:
+        http:
+          maxRequestsPerConnection: 10000
+          http1MaxPendingRequests: 10000
+        tcp:
+            maxConnections: 10000
+{{- end -}}
+{{- define "common.destinationrule" -}}
+{{- template "common.util.merge" (append . "common.destinationrule.tpl") -}}
+{{- end -}}

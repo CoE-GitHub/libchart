@@ -1,0 +1,31 @@
+{{- /*
+# Template to create a Kubernetes Job
+*/ -}}
+
+{{- define "common.job.tpl" -}}
+{{- $releaseName := include "common.fullname" . -}}
+
+apiVersion: batch/v1
+kind: Job
+{{ template "common.metadata" . }}
+spec:
+  completions: {{ .Values.job.completions }}
+  parallelism: {{ .Values.job.parallelism }}
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/rewriteAppHTTPProbers: "true"
+      labels:
+        app: {{ template "common.name" . }}
+        release: {{ .Release.Name | quote }}
+        version: {{ .Values.version }}
+    spec:
+      restartPolicy: {{ .Values.job.restart }}
+      volumes:
+      - {{ include "common.volume.configMap" (list "config" $releaseName ) }}
+      containers:
+{{ include "common.container.tpl" . | indent 8 }}
+{{- end -}}
+{{- define "common.job" -}}
+{{- template "common.util.merge" (append . "common.job.tpl") -}}
+{{- end -}}

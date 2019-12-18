@@ -1,0 +1,26 @@
+{{- /*
+# Template to create a global service
+# service will not use the release
+# version in name. Example microservicesvc.default.svc.cluster.local
+# The service will include all versions of the application 
+# inside the namespace where the app is running.
+#   selector:
+#    app: mymicroservice
+*/ -}}
+{{- define "common.service_global.tpl" -}}
+apiVersion: v1
+kind: Service
+{{ template "common.metadata_global" . }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+  # Note the Istio requirements for port naming, must start from protocol
+  - name: {{ .Values.service.port_name }}
+    port: {{ .Values.service.port }}
+    targetPort: {{ .Values.service.port_name }}
+  selector:
+    app: {{ template "common.name" . }}
+{{- end -}}
+{{- define "common.service_global" -}}
+{{- template "common.util.merge" (append . "common.service_global.tpl") -}}
+{{- end -}}

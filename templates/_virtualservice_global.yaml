@@ -1,0 +1,64 @@
+{{- /*
+# Template to create a global resource
+#virtualservice_global:
+#  ingressgateway: domain/service-gw
+#  hosts:
+#    - "service.domain.com"
+#  headermatch:
+#  - header: version
+#    value: v1
+#    destination: service-v1.domain.svc.cluster.local
+#    port: 9118
+#  - header: version
+#    value: v2
+#    destination: service-v2.domain.svc.cluster.local
+#    port: 9118
+#  destinations:
+#  - destination: service-v1.domain.svc.cluster.local
+#    weight: 50
+#    subset: v1
+#    port: 9118
+#  - destination: service-v2.domain.svc.cluster.local
+#    weight: 50
+#    subset: v2
+#    port: 9118
+*/ -}}
+{{- define "common.virtualservice_global.tpl" -}}
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+{{ template "common.metadata_global" . }}
+spec:
+  gateways:
+    - {{ .Values.virtualservice_global.ingressgateway | default "istio-system/ingressgateway" }}  
+    - mesh
+  hosts:
+{{- range .Values.virtualservice_global.hosts }}
+    - {{ . | quote }}
+{{- end }}
+  http:
+{{- range .Values.virtualservice_global.headermatch }}
+  - match:
+    - headers:
+        {{ .header }}:
+          exact: {{ .value }}
+    route:
+    - destination:
+        host: {{ .destination }}
+        port:
+          number: {{ .port }}
+{{- end }}
+  - route:
+  {{- range .Values.virtualservice_global.destinations }}
+    - destination:
+        host: {{ .destination }}
+{{- if hasKey . "subset" }}
+        subset: {{ .subset }}
+{{- end }}
+        port:
+          number: {{ .port }}
+      weight: {{ .weight }}
+{{- end }}
+{{- end -}}
+{{- define "common.virtualservice_global" -}}
+{{- template "common.util.merge" (append . "common.virtualservice_global.tpl") -}}
+{{- end -}}

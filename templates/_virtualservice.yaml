@@ -1,0 +1,28 @@
+{{- /*
+# Template to create a release based 
+# virtual service and route all the traffic
+# to that release
+*/ -}}
+{{- define "common.virtualservice.tpl" -}}
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+{{ template "common.metadata" . }}
+spec:
+  gateways:
+    - {{ .Values.virtualservice.ingressgateway | default "istio-system/ingressgateway" }}  
+    - mesh
+  hosts:
+  - {{ template "common.fullname" . }}
+  - {{ template "common.fullname" . }}.{{ .Release.Namespace }}.{{ .Values.destinationrule.domain }}
+  http:
+  - route:
+    - destination:
+        host: {{ template "common.fullname" . }}.{{ .Release.Namespace }}.{{ .Values.destinationrule.domain }}
+        subset: {{ .Values.version }}
+        port:
+          number: {{ .Values.service.port }}
+      weight: 100
+{{- end -}}
+{{- define "common.virtualservice" -}}
+{{- template "common.util.merge" (append . "common.virtualservice.tpl") -}}
+{{- end -}}

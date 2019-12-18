@@ -1,0 +1,14 @@
+{{- /*
+common.metadata creates a standard metadata header.
+It creates a 'metadata:' section with name and labels.
+
+This template creates the global metadata for resources
+that can be used by objects shared amond multiple 
+releases of a service. E.g. a global VirtualService
+*/ -}}
+{{ define "common.metadata_global" -}}
+metadata:
+  name: {{ template "common.name" . }}
+  labels:
+{{ include "common.labels_global.standard" . | indent 4 -}}
+{{- end -}}

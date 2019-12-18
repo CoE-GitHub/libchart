@@ -1,0 +1,14 @@
+apiVersion: v1
+entries:
+  libchart:
+  - apiVersion: v1
+    appVersion: 0.0.1
+    created: "2019-12-17T20:32:23.072052+02:00"
+    description: Common Library Chart
+    digest: fee935625c163e7f212f39f25d00349d406ac0e626145f483b70745cb99a7b53
+    home: kubernetes.io
+    name: libchart
+    urls:
+    - libchart-0.0.1.tgz
+    version: 0.0.1
+generated: "2019-12-17T20:32:23.066473+02:00"

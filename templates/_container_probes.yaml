@@ -1,0 +1,32 @@
+{{- /*
+# This is an example sidecar probe container
+# that can be used as liveness and readiness probes
+# when istio rule rewrites does not work
+*/ -}}
+{{- define "common.container_probes.tpl" -}}
+name: probes
+image: curlimages/curl:latest
+command: ["sh", "-c", "while true; do sleep 60; done"] 
+livenessProbe:
+  exec:
+    command: ["curl", "--fail", "--silent", "--show-error", "localhost:{{ .Values.service.port }}/{{ .Values.service.readiness_path }}"]
+  initialDelaySeconds: 90
+  periodSeconds: 5
+readinessProbe:
+  exec:
+    command: ["curl", "--fail", "--silent", "--show-error", "localhost:{{ .Values.service.port }}/{{ .Values.service.readiness_path }}"]
+  initialDelaySeconds: 90
+  periodSeconds: 5
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 50m
+    memory: 128Mi
+{{- end -}}
+{{- define "common.container_probes" -}}
+{{- /* clear new line so indentation works correctly */ -}}
+{{- println "" -}}
+{{- include "common.util.merge" (append . "common.container_probes.tpl") | indent 8 -}}
+{{- end -}}
